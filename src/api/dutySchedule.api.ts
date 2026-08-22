@@ -66,7 +66,10 @@ export const dutyScheduleApi = {
     apiClient.post<AutoAssignPreviewResponse>("/api/duty-schedules/auto-assign/preview", p).then(unwrap),
 
   autoAssignConfirm: (p: AutoAssignPayload) =>
-    apiClient.post<{ success: boolean; created: number }>("/api/duty-schedules/auto-assign/confirm", p).then(unwrap),
+    apiClient.post<{
+      success: boolean; created: number;
+      totals: { schedules: number; slots: number; assigned: number; missing: number };
+    }>("/api/duty-schedules/auto-assign/confirm", p).then(unwrap),
 
   addAssignment: (scheduleId: number, employeeId: number) =>
     apiClient.post<DutySchedule>(`/api/duty-schedules/${scheduleId}/assignments`, { employeeId }).then(unwrap),

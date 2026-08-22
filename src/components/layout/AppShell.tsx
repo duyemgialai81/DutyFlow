@@ -1,230 +1,303 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
-  CalendarDays, CalendarPlus, Wand2, UserCheck, Bell, Palmtree, Plug, ChevronDown,
+  BarChart3, Bell, CalendarCheck2, CalendarDays, Check, ChevronDown, ChevronsLeft, ChevronsRight,
+  Clock3, LayoutDashboard, Menu, Repeat, Search, Settings, Users, X,
 } from "lucide-react";
-import { AppProviders, demoUsers, useAuth } from "../../state/AppProviders";
+import { useAuth, demoUsers } from "../../state/AppProviders";
 import { NotificationBell } from "../notification/NotificationBell";
-import { Avatar } from "../ui";
+import { CommandSearch } from "../duty/CommandSearch";
+import { Avatar, Kbd, Tip } from "../ui";
 import { cx } from "../../lib/utils";
 
-/* ---------- đồng hồ sống + ca hiện tại ---------- */
-function useNow() {
-  const [now, setNow] = useState(() => new Date());
+/* ---------- logo ---------- */
+function LogoMark({ size = 30 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden className="shrink-0">
+      <rect width="32" height="32" rx="8" fill="#2563EB" />
+      <path d="M9 14h14M9 19h9" stroke="white" strokeWidth="2.4" strokeLinecap="round" />
+      <rect x="9" y="7" width="14" height="3" rx="1.5" fill="white" opacity=".55" />
+      <circle cx="23" cy="22" r="4.4" fill="#16A34A" stroke="white" strokeWidth="1.6" />
+      <path d="M21.4 22l1.2 1.2 2-2.2" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </svg>
+  );
+}
+
+interface NavItem { to: string; label: string; icon: ReactNode; end?: boolean }
+
+const PAGE_META: Record<string, { title: string; subtitle: string }> = {
+  "/overview": { title: "Tổng quan", subtitle: "Bức tranh trực ca của đội ngũ trong tháng" },
+  "/duty/calendar": { title: "Phân lịch trực", subtitle: "Quản lý lịch trực và phân công nhân sự" },
+  "/my-duty": { title: "Ca trực của tôi", subtitle: "Lịch trực cá nhân và xác nhận ca" },
+  "/users": { title: "Nhân viên", subtitle: "Danh sách nhân sự và trạng thái kết nối" },
+  "/shifts": { title: "Ca trực", subtitle: "Khung giờ trực cố định của hệ thống" },
+  "/requests": { title: "Đổi ca & Nghỉ phép", subtitle: "Phê duyệt yêu cầu từ nhân viên" },
+  "/notifications": { title: "Thông báo", subtitle: "Nhật ký gửi thông báo qua Zalo" },
+  "/reports": { title: "Báo cáo", subtitle: "Mức độ phủ lịch và hiệu suất phân công" },
+  "/settings": { title: "Cài đặt", subtitle: "Tài khoản, kết nối Zalo và tuỳ chọn" },
+};
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const { user, isAdmin, switchUser } = useAuth();
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem("df.sidebar") === "1");
+  const [mobileNav, setMobileNav] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => setMobileNav(false), [location.pathname]);
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
   }, []);
-  return now;
-}
 
-function currentShiftInfo(now: Date): { label: string; active: boolean; cls: string } {
-  const h = now.getHours();
-  if (h >= 8 && h < 12) return { label: "Ca sáng · 08:00–12:00", active: true, cls: "bg-gold-100 text-gold-700 border-gold-300/60" };
-  if (h >= 13 && h < 17) return { label: "Ca chiều · 13:00–17:00", active: true, cls: "bg-pine-100 text-pine-800 border-pine-300/60" };
-  if (h >= 18 && h < 22) return { label: "Ca tối · 18:00–22:00", active: true, cls: "bg-night-100 text-night-600 border-night-600/30" };
-  return { label: "Ngoài giờ trực", active: false, cls: "bg-linesoft text-muted border-line" };
-}
+  const persistCollapse = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    localStorage.setItem("df.sidebar", next ? "1" : "0");
+  };
 
-const TITLES: Array<[string, string]> = [
-  ["/duty/calendar", "Lịch trực"],
-  ["/duty/create", "Tạo ca trực"],
-  ["/duty/auto-assign", "Phân ca tự động"],
-  ["/duty-schedules/", "Chi tiết ca trực"],
-  ["/my-duty", "Ca trực của tôi"],
-  ["/day-offs", "Đăng ký nghỉ"],
-  ["/notifications", "Nhật ký thông báo"],
-  ["/settings/zalo", "Kết nối Zalo"],
-];
-
-function Sidebar() {
-  const { isAdmin } = useAuth();
-  const nav = [
-    { group: "Lịch trực", items: [
-      { to: "/duty/calendar", label: "Lịch tổng", icon: CalendarDays, admin: false },
-      { to: "/duty/create", label: "Tạo ca trực", icon: CalendarPlus, admin: true },
-      { to: "/duty/auto-assign", label: "Phân ca tự động", icon: Wand2, admin: true },
-      { to: "/my-duty", label: "Ca của tôi", icon: UserCheck, admin: false },
-      { to: "/day-offs", label: "Đăng ký nghỉ", icon: Palmtree, admin: false },
-    ]},
-    { group: "Hệ thống", items: [
-      { to: "/notifications", label: "Thông báo", icon: Bell, admin: false },
-      { to: "/settings/zalo", label: "Kết nối Zalo", icon: Plug, admin: false },
-    ]},
+  const adminNav: NavItem[] = [
+    { to: "/overview", label: "Tổng quan", icon: <LayoutDashboard className="h-[18px] w-[18px]" /> },
+    { to: "/duty/calendar", label: "Lịch trực", icon: <CalendarDays className="h-[18px] w-[18px]" /> },
+    { to: "/users", label: "Nhân viên", icon: <Users className="h-[18px] w-[18px]" /> },
+    { to: "/shifts", label: "Ca trực", icon: <Clock3 className="h-[18px] w-[18px]" /> },
+    { to: "/requests", label: "Đổi ca", icon: <Repeat className="h-[18px] w-[18px]" /> },
+    { to: "/notifications", label: "Thông báo", icon: <Bell className="h-[18px] w-[18px]" /> },
+    { to: "/reports", label: "Báo cáo", icon: <BarChart3 className="h-[18px] w-[18px]" /> },
+    { to: "/settings", label: "Cài đặt", icon: <Settings className="h-[18px] w-[18px]" /> },
   ];
-  return (
-    <aside className="sidebar-grain sticky top-0 flex h-screen w-[232px] shrink-0 flex-col bg-pine-950 text-pine-100 max-lg:hidden">
-      <div className="flex items-center gap-3 px-5 pb-5 pt-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-300 text-pine-950 shadow-[0_0_0_4px_rgb(232_176_75/0.15)]">
-          <svg viewBox="0 0 32 32" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
-            <circle cx="16" cy="16" r="10" />
-            <path d="M16 10v6l4.5 3" />
-          </svg>
-        </div>
-        <div>
-          <div className="font-display text-[19px] font-extrabold leading-none tracking-tight text-white">TrựcCa</div>
-          <div className="mt-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-pine-300">Duty · Zalo</div>
-        </div>
-      </div>
+  const employeeNav: NavItem[] = [
+    { to: "/overview", label: "Tổng quan", icon: <LayoutDashboard className="h-[18px] w-[18px]" /> },
+    { to: "/duty/calendar", label: "Lịch trực", icon: <CalendarDays className="h-[18px] w-[18px]" /> },
+    { to: "/my-duty", label: "Ca của tôi", icon: <CalendarCheck2 className="h-[18px] w-[18px]" /> },
+    { to: "/requests", label: "Đổi ca", icon: <Repeat className="h-[18px] w-[18px]" /> },
+    { to: "/notifications", label: "Thông báo", icon: <Bell className="h-[18px] w-[18px]" /> },
+    { to: "/settings", label: "Cài đặt", icon: <Settings className="h-[18px] w-[18px]" /> },
+  ];
+  const nav = isAdmin ? adminNav : employeeNav;
+  const meta = PAGE_META[location.pathname] ?? PAGE_META["/overview"];
 
-      <nav className="flex-1 overflow-y-auto px-3">
-        {nav.map((g) => (
-          <div key={g.group} className="mb-5">
-            <div className="px-2.5 pb-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-pine-400">{g.group}</div>
-            <ul className="space-y-1">
-              {g.items.filter((i) => !i.admin || isAdmin).map((i) => (
-                <li key={i.to}>
-                  <NavLink
-                    to={i.to}
-                    className={({ isActive }) =>
-                      cx(
-                        "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-semibold transition-all duration-150",
-                        isActive
-                          ? "bg-pine-800 text-white shadow-[inset_3px_0_0_var(--color-gold-300)]"
-                          : "text-pine-200 hover:bg-pine-900 hover:text-white",
-                      )
-                    }
-                  >
-                    <i.icon className="h-[18px] w-[18px] transition-transform duration-150 group-hover:scale-110" />
-                    {i.label}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
+  const mobileNavItems = isAdmin
+    ? [
+        { to: "/duty/calendar", label: "Lịch", icon: <CalendarDays className="h-5 w-5" /> },
+        { to: "/shifts", label: "Ca trực", icon: <Clock3 className="h-5 w-5" /> },
+        { to: "/notifications", label: "Thông báo", icon: <Bell className="h-5 w-5" /> },
+        { to: "/settings", label: "Tài khoản", icon: <Settings className="h-5 w-5" /> },
+      ]
+    : [
+        { to: "/duty/calendar", label: "Lịch", icon: <CalendarDays className="h-5 w-5" /> },
+        { to: "/my-duty", label: "Ca trực", icon: <CalendarCheck2 className="h-5 w-5" /> },
+        { to: "/notifications", label: "Thông báo", icon: <Bell className="h-5 w-5" /> },
+        { to: "/settings", label: "Tài khoản", icon: <Settings className="h-5 w-5" /> },
+      ];
 
-      <div className="border-t border-pine-800/80 px-5 py-4 text-[11px] leading-relaxed text-pine-300">
-        <p className="font-semibold text-pine-200">Module Phân lịch trực</p>
-        <p>Spring Boot · React · Zalo ZNS</p>
-      </div>
-    </aside>
-  );
-}
-
-function UserSwitcher() {
-  const { user, switchUser } = useAuth();
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 rounded-full border border-line bg-white py-1 pl-1 pr-3 shadow-sm transition-all hover:border-pine-300"
-      >
-        <Avatar name={user.name} />
-        <span className="max-w-[130px] text-left">
-          <span className="block truncate text-[13px] font-bold leading-tight text-ink">{user.name}</span>
-          <span className={cx("block text-[10.5px] font-bold uppercase tracking-wide", user.role === "ADMIN" ? "text-gold-500" : "text-pine-600")}>
-            {user.role === "ADMIN" ? "Quản trị" : "Nhân viên"}
+  const SidebarInner = ({ compact, onNavigate }: { compact: boolean; onNavigate?: () => void }) => (
+    <div className="flex h-full flex-col">
+      <div className={cx("flex h-16 items-center gap-2.5 border-b border-edgesoft px-4", compact && "justify-center px-0")}>
+        <LogoMark />
+        {!compact && (
+          <span className="min-w-0">
+            <span className="block text-[15px] font-bold leading-tight tracking-tight text-ink">DutyFlow</span>
+            <span className="block text-[10.5px] font-semibold uppercase tracking-[0.12em] text-gray-400">Scheduling</span>
           </span>
-        </span>
-        <ChevronDown className={cx("h-4 w-4 text-muted transition-transform", open && "rotate-180")} />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="anim-pop absolute right-0 z-50 mt-2 w-64 rounded-xl border border-line bg-white p-1.5 shadow-[var(--shadow-pop)]">
-            <div className="px-3 pb-1.5 pt-2 text-[10.5px] font-bold uppercase tracking-wider text-muted">
-              Đổi phiên đăng nhập (demo RBAC)
-            </div>
-            {demoUsers.map((u) => (
-              <button
-                key={u.sub}
-                onClick={() => { switchUser(u.sub); setOpen(false); }}
-                className={cx(
-                  "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-pine-50",
-                  u.sub === user.sub && "bg-pine-50",
-                )}
-              >
-                <Avatar name={u.name} size="sm" />
-                <span className="flex-1">
-                  <span className="block text-[13px] font-bold text-ink">{u.name}</span>
-                  <span className="block text-[11px] text-muted">{u.title}</span>
-                </span>
-                <span className={cx(
-                  "rounded px-1.5 py-0.5 text-[10px] font-bold uppercase",
-                  u.role === "ADMIN" ? "bg-gold-100 text-gold-700" : "bg-pine-100 text-pine-700",
-                )}>
-                  {u.role === "ADMIN" ? "Admin" : "NV"}
-                </span>
-              </button>
-            ))}
-            <div className="mt-1 border-t border-linesoft px-3 py-2 text-[11px] leading-snug text-muted">
-              Backend thật xác thực bằng JWT + @PreAuthorize — xem <code className="font-mono">server/security</code>.
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function Header() {
-  const now = useNow();
-  const shift = currentShiftInfo(now);
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const title = TITLES.find(([p]) => pathname.startsWith(p))?.[1] ?? "TrựcCa";
-  const hh = String(now.getHours()).padStart(2, "0");
-  const mm = String(now.getMinutes()).padStart(2, "0");
-  const ss = String(now.getSeconds()).padStart(2, "0");
-
-  return (
-    <header className="sticky top-0 z-30 border-b border-line bg-paper/85 backdrop-blur-md">
-      <div className="flex items-center gap-4 px-5 py-3 lg:px-8">
-        <button className="rounded-lg border border-line bg-white p-2 text-ink lg:hidden" onClick={() => navigate("/duty/calendar")} aria-label="Trang chủ">
-          <svg viewBox="0 0 32 32" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
-            <circle cx="16" cy="16" r="10" /><path d="M16 10v6l4.5 3" />
-          </svg>
-        </button>
-        <div className="min-w-0 flex-1">
-          <h1 className="font-display truncate text-[19px] font-extrabold tracking-tight text-ink">{title}</h1>
-        </div>
-
-        <div className={cx("hidden items-center gap-2 rounded-full border px-3 py-1.5 md:flex", shift.cls)}>
-          <span className={cx("h-2 w-2 rounded-full", shift.active ? "live-dot bg-current" : "bg-muted/50")} />
-          <span className="text-[12px] font-bold">{shift.label}</span>
-        </div>
-        <div className="hidden rounded-lg border border-line bg-white px-3 py-1.5 font-mono text-[13px] font-semibold tabular-nums text-ink sm:block">
-          {hh}:{mm}<span className="text-muted">:{ss}</span>
-        </div>
-
-        <NotificationBell />
-        <UserSwitcher />
+        )}
       </div>
 
-      {/* nav mobile */}
-      <nav className="flex gap-1 overflow-x-auto px-4 pb-2 lg:hidden">
-        {[
-          ["/duty/calendar", "Lịch tổng"], ["/duty/create", "Tạo ca"], ["/duty/auto-assign", "Phân ca"],
-          ["/my-duty", "Ca của tôi"], ["/day-offs", "Nghỉ"], ["/notifications", "Thông báo"], ["/settings/zalo", "Zalo"],
-        ].map(([to, label]) => (
-          <NavLink key={to} to={to} className={({ isActive }) => cx(
-            "whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition-colors",
-            isActive ? "bg-pine-800 text-white" : "bg-white text-inksoft border border-line",
-          )}>
-            {label}
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4" aria-label="Điều hướng chính">
+        {!compact && <p className="px-3 pb-2 text-[10.5px] font-bold uppercase tracking-[0.14em] text-gray-400">Quản lý</p>}
+        {nav.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              cx(
+                "group flex h-9.5 items-center gap-3 rounded-[10px] px-3 text-[13.5px] font-medium transition-all duration-150",
+                compact && "justify-center px-0",
+                isActive ? "bg-blue-50 font-semibold text-brand-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <span className={cx("transition-colors", isActive ? "text-brand-600" : "text-gray-400 group-hover:text-gray-600")}>
+                  {item.icon}
+                </span>
+                {!compact && item.label}
+                {compact && <span className="sr-only">{item.label}</span>}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
-    </header>
-  );
-}
 
-export function AppShell({ children }: { children: ReactNode }) {
-  return (
-    <AppProviders>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="workspace-canvas min-w-0 flex-1">
-          <Header />
-          <main className="mx-auto max-w-[1240px] px-5 py-6 lg:px-8">{children}</main>
-        </div>
+      <div className="border-t border-edgesoft p-3">
+        {!compact && (
+          <div className="mb-2 rounded-[10px] bg-gray-50 px-3 py-2.5">
+            <p className="text-[11px] font-semibold text-gray-500">Phiên demo</p>
+            <p className="text-[11px] leading-snug text-gray-400">Đổi tài khoản ở góc phải trên để thử vai trò khác.</p>
+          </div>
+        )}
+        <button
+          onClick={persistCollapse}
+          className="hidden h-9 w-full items-center justify-center gap-2 rounded-[10px] text-[12.5px] font-semibold text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 lg:flex"
+          aria-label={collapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+        >
+          {collapsed ? <ChevronsRight className="h-4 w-4" /> : <><ChevronsLeft className="h-4 w-4" /> Thu gọn</>}
+        </button>
       </div>
-    </AppProviders>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-canvas">
+      {/* ===== desktop sidebar ===== */}
+      <aside
+        className={cx(
+          "fixed inset-y-0 left-0 z-40 hidden border-r border-edge bg-surface transition-[width] duration-200 ease-out lg:block",
+          collapsed ? "w-[72px]" : "w-[240px]",
+        )}
+      >
+        <SidebarInner compact={collapsed} />
+      </aside>
+
+      {/* ===== mobile sidebar overlay ===== */}
+      {mobileNav && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal>
+          <div className="anim-fade absolute inset-0 bg-gray-900/45" onClick={() => setMobileNav(false)} />
+          <div className="anim-pop absolute inset-y-0 left-0 w-[260px] bg-surface shadow-[var(--shadow-pop)]">
+            <button onClick={() => setMobileNav(false)} aria-label="Đóng menu" className="absolute right-3 top-4 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
+              <X className="h-4.5 w-4.5" />
+            </button>
+            <SidebarInner compact={false} onNavigate={() => setMobileNav(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* ===== main column ===== */}
+      <div className={cx("flex min-h-screen flex-col transition-[padding] duration-200", collapsed ? "lg:pl-[72px]" : "lg:pl-[240px]")}>
+        {/* header */}
+        <header className="sticky top-0 z-30 border-b border-edge bg-surface/95 backdrop-blur">
+          <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
+            <button
+              onClick={() => setMobileNav(true)}
+              className="rounded-[10px] p-2 text-gray-500 transition-colors hover:bg-gray-100 lg:hidden"
+              aria-label="Mở menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <span className="lg:hidden"><LogoMark size={28} /></span>
+
+            <div className="hidden min-w-0 sm:block">
+              <h1 className="truncate text-[15px] font-bold tracking-tight text-ink">{meta.title}</h1>
+              <p className="truncate text-[12px] text-sub">{meta.subtitle}</p>
+            </div>
+
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("df:open-search"))}
+                className="hidden h-9 w-60 items-center gap-2 rounded-[10px] border border-edge bg-gray-50 px-3 text-[13px] text-faint transition-all duration-150 hover:border-gray-300 hover:bg-surface md:flex"
+                aria-label="Tìm kiếm"
+              >
+                <Search className="h-4 w-4" />
+                <span className="flex-1 text-left">Tìm nhân viên, ca trực...</span>
+                <Kbd>⌘K</Kbd>
+              </button>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("df:open-search"))}
+                className="rounded-[10px] p-2 text-gray-500 transition-colors hover:bg-gray-100 md:hidden"
+                aria-label="Tìm kiếm"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+
+              <NotificationBell />
+
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="flex items-center gap-2 rounded-[10px] py-1 pl-1 pr-2 transition-colors hover:bg-gray-100"
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                >
+                  <Avatar name={user.name} size="sm" />
+                  <span className="hidden text-left sm:block">
+                    <span className="block max-w-[130px] truncate text-[13px] font-semibold leading-tight text-ink">{user.name}</span>
+                    <span className="block text-[11px] leading-tight text-gray-400">{isAdmin ? "Quản trị viên" : "Nhân viên"}</span>
+                  </span>
+                  <ChevronDown className={cx("h-4 w-4 text-gray-400 transition-transform duration-150", menuOpen && "rotate-180")} />
+                </button>
+
+                {menuOpen && (
+                  <div className="anim-pop absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-xl border border-edge bg-surface shadow-[var(--shadow-pop)]" role="menu">
+                    <div className="border-b border-edgesoft px-4 py-3">
+                      <p className="text-[13px] font-bold text-ink">{user.name}</p>
+                      <p className="text-[11.5px] text-sub">{user.title}</p>
+                    </div>
+                    <div className="px-2 py-2">
+                      <p className="px-2 pb-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] text-gray-400">Chuyển tài khoản demo</p>
+                      {demoUsers.map((u) => (
+                        <button
+                          key={u.sub}
+                          role="menuitem"
+                          onClick={() => { switchUser(u.sub); setMenuOpen(false); }}
+                          className={cx(
+                            "flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-gray-50",
+                            u.sub === user.sub && "bg-blue-50/60",
+                          )}
+                        >
+                          <Avatar name={u.name} size="sm" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-[13px] font-semibold text-ink">{u.name}</span>
+                            <span className="block text-[11px] text-gray-400">{u.role === "ADMIN" ? "Quản trị viên" : "Nhân viên"}</span>
+                          </span>
+                          {u.sub === user.sub && <Check className="h-4 w-4 text-brand-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-8">
+          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
+        </main>
+      </div>
+
+      {/* ===== mobile bottom nav ===== */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-edge bg-white/85 backdrop-blur-md lg:hidden"
+        style={{ height: 64 }}
+        aria-label="Điều hướng di động"
+      >
+        <div className="mx-auto flex h-full max-w-md items-stretch justify-around">
+          {mobileNavItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                cx(
+                  "flex flex-1 flex-col items-center justify-center gap-1 text-[10.5px] font-semibold transition-colors",
+                  isActive ? "text-brand-600" : "text-gray-400 hover:text-gray-600",
+                )
+              }
+            >
+              {item.icon}
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
+
+      <CommandSearch />
+    </div>
   );
 }
-
-

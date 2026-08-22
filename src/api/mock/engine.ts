@@ -712,4 +712,67 @@ export function listEmployees(session: Session) {
   }));
 }
 
+/* ================= SwapRequestService (yêu cầu đổi ca) ================= */
+export interface DbSwap {
+  id: number; assignmentId: number; employeeId: number; reason: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"; createdAt: string;
+}
+const SWAP_KEY = "trucca.swaps.v1";
+let swaps: DbSwap[] = (() => {
+  try { return JSON.parse(localStorage.getItem(SWAP_KEY) ?? "[]"); } catch { return []; }
+})();
+function persistSwaps() {
+  localStorage.setItem(SWAP_KEY, JSON.stringify(swaps));
+  changed();
+}
+function swapDto(s: DbSwap) {
+  const a = db.assignments.find((x) => x.id === s.assignmentId);
+  const sch = a ? scheduleById(a.scheduleId) : undefined;
+  const emp = empOf(s.employeeId);
+  const shift = sch ? shiftOf(sch.shiftId) : undefined;
+  return {
+    id: s.id, scheduleId: sch?.id ?? 0, assignmentId: s.assignmentId, employeeId: s.employeeId,
+    employeeName: emp.fullName, departmentName: deptOf(emp.departmentId), reason: s.reason, status: s.status,
+    scheduleDate: sch?.date ?? "", shiftName: shift?.name ?? "", startTime: shift?.startTime ?? "",
+    endTime: shift?.endTime ?? "", location: sch?.location ?? "", createdAt: s.createdAt,
+  };
+}
+export function listSwapRequests(session: Session) {
+  const list = session.role === "ADMIN" ? swaps : swaps.filter((s) => s.employeeId === session.employeeId);
+  return list.slice().sort((a, b) => b.id - a.id).map(swapDto);
+}
+export function createSwapRequest(session: Session, input: { assignmentId: number; reason: string }) {
+  const a = db.assignments.find((x) => x.id === input.assignmentId);
+  if (!a) throw new ApiError(404, "ASSIGNMENT_NOT_FOUND", "Không tìm thấy phân công.");
+  if (session.role !== "ADMIN" && session.employeeId !== a.employeeId) {
+    throw new ApiError(403, "FORBIDDEN", "Bạn chỉ có thể yêu cầu đổi ca của chính mình.");
+  }
+  if (a.status !== "ASSIGNED" && a.status !== "CONFIRMED") {
+    throw new ApiError(409, "INVALID_TRANSITION", "Ca này không còn hiệu lực để yêu cầu đổi.");
+  }
+  const s: DbSwap = {
+    id: Date.now() % 1_000_000_000 + swaps.length, assignmentId: input.assignmentId,
+    employeeId: a.employeeId, reason: input.reason?.trim() || "Muốn đổi ca vì việc cá nhân",
+    status: "PENDING", createdAt: nowIso(),
+  };
+  swaps.push(s);
+  logHistory(a.scheduleId, "SWAP_REQUEST", null, empOf(a.employeeId).fullName, session.name);
+  persistSwaps();
+  return swapDto(s);
+}
+export function updateSwapRequest(id: number, status: "APPROVED" | "REJECTED" | "CANCELLED", session: Session) {
+  const s = swaps.find((x) => x.id === id);
+  if (!s) throw new ApiError(404, "NOT_FOUND", "Không tìm thấy yêu cầu đổi ca.");
+  if (status === "CANCELLED") {
+    if (session.role !== "ADMIN" && session.employeeId !== s.employeeId) {
+      throw new ApiError(403, "FORBIDDEN", "Không có quyền hủy yêu cầu này.");
+    }
+  } else {
+    requireAdmin(session);
+  }
+  s.status = status;
+  persistSwaps();
+  return swapDto(s);
+}
+
 export { resetDb };

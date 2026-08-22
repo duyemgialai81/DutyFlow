@@ -125,6 +125,15 @@ route("PUT", /^\/api\/integrations\/zalo\/dev-failure$/, ({ body, session }) => 
 });
 route("GET", /^\/api\/integrations\/zalo\/dev-failure$/, () => ({ enabled: E.getDevZaloFailure() }));
 
+/* ---------- swap requests ---------- */
+route("GET", /^\/api\/swap-requests$/, ({ session }) => E.listSwapRequests(session));
+route("POST", /^\/api\/swap-requests$/, ({ body, session }) =>
+  E.createSwapRequest(session, body as { assignmentId: number; reason: string }),
+);
+route("PUT", /^\/api\/swap-requests\/(\d+)$/, ({ params, body, session }) =>
+  E.updateSwapRequest(Number(params.id), (body as { status: "APPROVED" | "REJECTED" | "CANCELLED" }).status, session),
+);
+
 /* ---------- notifications ---------- */
 route("GET", /^\/api\/notifications$/, ({ query, session }) =>
   E.listNotifications(session, query.get("all") === "true"),

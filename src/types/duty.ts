@@ -166,6 +166,23 @@ export interface AutoAssignPreviewResponse {
   totals: { schedules: number; slots: number; assigned: number; missing: number };
 }
 
+export interface SwapRequest {
+  id: number;
+  scheduleId: number;
+  assignmentId: number;
+  employeeId: number;
+  employeeName: string;
+  departmentName?: string;
+  reason: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+  scheduleDate: string;
+  shiftName: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  createdAt: string;
+}
+
 export interface MyDutyItem {
   assignmentId: number;
   assignmentStatus: AssignmentStatus;

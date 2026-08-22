@@ -1,29 +1,31 @@
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
+import { OverviewPage } from "./pages/OverviewPage";
 import { DutyCalendarPage } from "./pages/DutyCalendarPage";
-import { DutyScheduleCreatePage } from "./pages/DutyScheduleCreatePage";
-import { AutoAssignPage } from "./pages/AutoAssignPage";
-import { DutyScheduleDetailPage } from "./pages/DutyScheduleDetailPage";
 import { MyDutySchedulePage } from "./pages/MyDutySchedulePage";
-import { ZaloIntegrationPage } from "./pages/ZaloIntegrationPage";
+import { UsersPage } from "./pages/UsersPage";
+import { ShiftsPage } from "./pages/ShiftsPage";
+import { RequestsPage } from "./pages/RequestsPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
-import { DayOffsPage } from "./pages/DayOffsPage";
+import { ReportsPage } from "./pages/ReportsPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 export default function App() {
   return (
     <HashRouter>
       <AppShell>
         <Routes>
-          <Route path="/" element={<Navigate to="/duty/calendar" replace />} />
+          <Route path="/" element={<Navigate to="/overview" replace />} />
+          <Route path="/overview" element={<OverviewPage />} />
           <Route path="/duty/calendar" element={<DutyCalendarPage />} />
-          <Route path="/duty/create" element={<DutyScheduleCreatePage />} />
-          <Route path="/duty/auto-assign" element={<AutoAssignPage />} />
-          <Route path="/duty-schedules/:id" element={<DutyScheduleDetailPage />} />
           <Route path="/my-duty" element={<MyDutySchedulePage />} />
-          <Route path="/day-offs" element={<DayOffsPage />} />
+          <Route path="/users" element={<UsersPage />} />
+          <Route path="/shifts" element={<ShiftsPage />} />
+          <Route path="/requests" element={<RequestsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/settings/zalo" element={<ZaloIntegrationPage />} />
-          <Route path="*" element={<Navigate to="/duty/calendar" replace />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="*" element={<Navigate to="/overview" replace />} />
         </Routes>
       </AppShell>
     </HashRouter>

@@ -38,16 +38,16 @@ function ToastHost({ toasts, dismiss }: { toasts: ToastItem[]; dismiss: (id: num
           key={t.id}
           className={cx(
             "anim-toast flex items-start gap-3 rounded-xl border bg-white px-4 py-3 shadow-[var(--shadow-pop)]",
-            t.kind === "success" && "border-ok-600/30",
-            t.kind === "error" && "border-danger-600/30",
-            t.kind === "info" && "border-info-600/30",
+            t.kind === "success" && "border-green-200",
+            t.kind === "error" && "border-red-200",
+            t.kind === "info" && "border-blue-200",
           )}
         >
-          {t.kind === "success" && <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-ok-600" />}
-          {t.kind === "error" && <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-danger-600" />}
-          {t.kind === "info" && <Info className="mt-0.5 h-5 w-5 shrink-0 text-info-600" />}
-          <p className="flex-1 text-sm leading-snug text-ink">{t.message}</p>
-          <button onClick={() => dismiss(t.id)} className="text-muted transition-colors hover:text-ink" aria-label="Đóng">
+          {t.kind === "success" && <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />}
+          {t.kind === "error" && <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />}
+          {t.kind === "info" && <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />}
+          <p className="flex-1 text-[13.5px] leading-snug text-ink">{t.message}</p>
+          <button onClick={() => dismiss(t.id)} className="text-gray-400 transition-colors hover:text-gray-700" aria-label="Đóng">
             <X className="h-4 w-4" />
           </button>
         </div>
