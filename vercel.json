@@ -1,0 +1,15 @@
+﻿{
+  buildCommand: cd client && npm run build,
+  outputDirectory: client/dist,
+  framework: vite,
+  rewrites: [
+    {
+      source: /api/(.*),
+      destination: https://donjaderoy-lich-kyta.hf.space/api/
+    },
+    {
+      source: /(.*),
+      destination: /index.html
+    }
+  ]
+}

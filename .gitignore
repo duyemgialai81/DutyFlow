@@ -1,0 +1,16 @@
+﻿# Root gitignore - Only client is tracked for Vercel deployment
+server/
+hf-space/
+logs/
+target/
+temp_jar/
+.system_generated/
+*.log
+.DS_Store
+
+# Frontend build artifacts
+client/node_modules/
+client/dist/
+client/dist-ssr/
+client/*.local
+client/.vite/

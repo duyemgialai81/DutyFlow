@@ -1,0 +1,12 @@
+﻿{
+  rewrites: [
+    {
+      source: /api/(.*),
+      destination: https://donjaderoy-lich-kyta.hf.space/api/
+    },
+    {
+      source: /(.*),
+      destination: /index.html
+    }
+  ]
+}

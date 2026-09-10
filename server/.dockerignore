@@ -1,6 +1,0 @@
-target/
-!.dockerignore
-*.md
-.idea/
-.vscode/
-*.log

@@ -1,1 +1,0 @@
-import{Y as s}from"./index-BircfvSM.js";const i={list:()=>s.get("/api/swap-requests").then(t=>t.data),create:t=>s.post("/api/swap-requests",t).then(a=>a.data),updateStatus:(t,a)=>s.put(`/api/swap-requests/${t}`,{status:a}).then(e=>e.data)};export{i as s};
