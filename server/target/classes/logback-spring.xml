@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+  <!-- Thuộc tính thư mục và tên tệp log -->
+  <property name="LOG_PATH" value="logs" />
+  <property name="APP_NAME" value="dutyflow" />
+
+  <!-- Appender 1: In ra Console màn hình terminal (có màu nổi bật) -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%thread] [%cyan(%X{traceId:-SYSTEM})] %logger{36} - %msg%n</pattern>
+      <charset>UTF-8</charset>
+    </encoder>
+  </appender>
+
+  <!-- Appender 2: Ghi toàn bộ nhật ký ứng dụng (Rolling theo ngày và kích thước) -->
+  <appender name="FILE_ALL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_PATH}/${APP_NAME}-app.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <!-- Tự động nén .gz theo ngày và số thứ tự -->
+      <fileNamePattern>${LOG_PATH}/archived/${APP_NAME}-app-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+      <maxFileSize>50MB</maxFileSize>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>5GB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [%X{traceId:-SYSTEM}] %logger{36} - %msg%n</pattern>
+      <charset>UTF-8</charset>
+    </encoder>
+  </appender>
+
+  <!-- Appender 3: Chuyên biệt ghi các lỗi nghiêm trọng (WARN & ERROR) -->
+  <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_PATH}/${APP_NAME}-error.log</file>
+    <!-- Lọc chỉ nhận mức WARN và ERROR -->
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>WARN</level>
+    </filter>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_PATH}/archived/${APP_NAME}-error-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+      <maxFileSize>50MB</maxFileSize>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>5GB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <!-- Ghi chi tiết cả Root Exception và Stack Trace -->
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [%X{traceId:-SYSTEM}] %logger{36} - %msg%n%rEx</pattern>
+      <charset>UTF-8</charset>
+    </encoder>
+  </appender>
+
+  <!-- Cấu hình mức log cho ứng dụng -->
+  <logger name="com.example.duty" level="INFO" />
+  <logger name="org.springframework.web" level="INFO" />
+  <logger name="org.springframework.security" level="INFO" />
+  <logger name="org.hibernate.SQL" level="WARN" />
+
+  <!-- Cấu hình Root Logger phân phối đến cả 3 appender -->
+  <root level="INFO">
+    <appender-ref ref="CONSOLE" />
+    <appender-ref ref="FILE_ALL" />
+    <appender-ref ref="FILE_ERROR" />
+  </root>
+
+</configuration>

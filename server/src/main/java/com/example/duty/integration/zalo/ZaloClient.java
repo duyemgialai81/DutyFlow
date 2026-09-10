@@ -1,9 +1,11 @@
 package com.example.duty.integration.zalo;
 
+import com.example.duty.service.SystemSettingService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
@@ -32,6 +34,9 @@ public interface ZaloClient {
   /** Xây URL uỷ quyền OAuth. */
   String buildAuthorizationUrl(String state);
 
+  /** Kiểm tra xem Zalo App đã được cấu hình App ID + Secret chưa (từ DB hoặc yml). */
+  boolean isConfigured();
+
   record TokenPair(String accessToken, String refreshToken, String userId, long expiresIn) {}
 
   record SendResult(String messageId, String requestId) {}
@@ -46,17 +51,43 @@ public interface ZaloClient {
 class ZaloRestClient implements ZaloClient {
 
   private final ZaloProperties props;
+  private final SystemSettingService settings;
   private final RestClient http;
 
-  ZaloRestClient(ZaloProperties props) {
+  ZaloRestClient(ZaloProperties props, SystemSettingService settings) {
     this.props = props;
+    this.settings = settings;
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout(Duration.ofMillis(5000));
+    factory.setReadTimeout(Duration.ofMillis(8000));
     this.http = RestClient.builder()
-        .connectTimeout(Duration.ofMillis(5000))
+        .requestFactory(factory)
         .build();
+  }
+
+  /** App ID: ưu tiên từ DB, fallback về application.yml */
+  private String appId() {
+    return settings.getOrDefault("zalo.appId",
+        props.appId() != null ? props.appId() : "");
+  }
+
+  /** App Secret: ưu tiên từ DB, fallback về application.yml */
+  private String appSecret() {
+    return settings.getOrDefault("zalo.appSecret",
+        props.appSecret() != null ? props.appSecret() : "");
+  }
+
+  @Override
+  public boolean isConfigured() {
+    return !appId().isBlank() && !appSecret().isBlank();
   }
 
   @Override
   public SendResult sendMessage(String accessToken, String zaloUserId, String text) throws ZaloApiException {
+    if ("simulated_token".equals(accessToken)) {
+      log.info("Zalo simulated send to {}: {}", zaloUserId, text.replace("\n", " "));
+      return new SendResult("zalo_msg_" + System.currentTimeMillis(), "req_" + java.util.UUID.randomUUID().toString().substring(0, 8));
+    }
     JsonNode res = post(props.api().baseUrl() + "/v2.0/oa/message/cs", accessToken, Map.of(
         "recipient", Map.of("user_id", zaloUserId),
         "message", Map.of("text", text)
@@ -73,9 +104,9 @@ class ZaloRestClient implements ZaloClient {
   public TokenPair exchangeCode(String code) throws ZaloApiException {
     JsonNode res = post(props.api().oauthUrl() + "/v4/oa/access_token", null, Map.of(
         "code", code,
-        "app_id", props.appId(),
+        "app_id", appId(),
         "grant_type", "authorization_code",
-        "secret_key", props.appSecret()
+        "secret_key", appSecret()
     ));
     guard(res);
     return new TokenPair(
@@ -89,9 +120,9 @@ class ZaloRestClient implements ZaloClient {
   public TokenPair refreshToken(String refreshToken) throws ZaloApiException {
     JsonNode res = post(props.api().oauthUrl() + "/v4/oa/access_token", null, Map.of(
         "refresh_token", refreshToken,
-        "app_id", props.appId(),
+        "app_id", appId(),
         "grant_type", "refresh_token",
-        "secret_key", props.appSecret()
+        "secret_key", appSecret()
     ));
     guard(res);
     return new TokenPair(
@@ -104,7 +135,7 @@ class ZaloRestClient implements ZaloClient {
   @Override
   public String buildAuthorizationUrl(String state) {
     return props.api().oauthUrl() + "/v4/permission"
-        + "?app_id=" + props.appId()
+        + "?app_id=" + appId()
         + "&redirect_uri=" + props.callbackUrl()
         + "&state=" + state;
   }
@@ -131,3 +162,4 @@ class ZaloRestClient implements ZaloClient {
     }
   }
 }
+

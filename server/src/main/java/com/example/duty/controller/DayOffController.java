@@ -31,7 +31,7 @@ public class DayOffController {
   }
 
   @PutMapping("/{id}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<MiscDtos.DayOffResponse> update(@PathVariable Long id,
                                                      @Valid @RequestBody MiscDtos.DayOffStatusRequest req) {
     return ApiResponse.ok(service.updateStatus(id, req.status()));

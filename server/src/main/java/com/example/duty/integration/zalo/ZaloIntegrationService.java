@@ -43,10 +43,74 @@ public class ZaloIntegrationService {
 
   /* ================= OAuth ================= */
 
+  private static final java.util.concurrent.atomic.AtomicBoolean DEV_FAILURE = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+  public boolean isDevFailureEnabled() {
+    return DEV_FAILURE.get();
+  }
+
+  public void setDevFailureEnabled(boolean enabled) {
+    DEV_FAILURE.set(enabled);
+  }
+
   public ZaloConnectResponse connect() {
     String state = UUID.randomUUID().toString();
     PENDING_STATES.put(state, System.currentTimeMillis());
     return new ZaloConnectResponse(zaloClient.buildAuthorizationUrl(state), state);
+  }
+
+  @Transactional
+  public ZaloStatusResponse completeConnect(String inputZaloUserId) {
+    Long employeeId = SecurityUsers.currentEmployeeId();
+    if (employeeId == null) {
+      throw new ApiException(ErrorCode.VALIDATION_ERROR, "Tài khoản quản trị không cần kết nối Zalo cá nhân.");
+    }
+    Employee emp = employeeRepository.findById(employeeId)
+        .orElseThrow(() -> new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND, "Không tìm thấy nhân viên."));
+
+    String finalZaloUserId = (inputZaloUserId != null && !inputZaloUserId.isBlank())
+        ? inputZaloUserId.trim()
+        : ("84" + (900000000L + emp.getId()));
+
+    ZaloMapping m = mappingRepository.findByEmployeeId(employeeId).orElseGet(() -> {
+      ZaloMapping nm = new ZaloMapping();
+      nm.setEmployee(emp);
+      return nm;
+    });
+
+    m.setZaloUserId(finalZaloUserId);
+    m.setStatus(ZaloMapping.Status.CONNECTED);
+    m.setReceiveNotifications(true);
+    m.setConnectedAt(Instant.now());
+    mappingRepository.save(m);
+
+    log.info("Zalo connect completed for employee {}: zaloUserId={}", emp.getEmployeeCode(), finalZaloUserId);
+    return status();
+  }
+
+  @Transactional
+  public ZaloStatusResponse connectForEmployee(Long targetEmployeeId, String inputZaloUserId) {
+    SecurityUsers.requireAdmin();
+    Employee emp = employeeRepository.findById(targetEmployeeId)
+        .orElseThrow(() -> new ApiException(ErrorCode.EMPLOYEE_NOT_FOUND, "Không tìm thấy nhân viên."));
+
+    String finalZaloUserId = (inputZaloUserId != null && !inputZaloUserId.isBlank())
+        ? inputZaloUserId.trim()
+        : ("84" + (900000000L + emp.getId()));
+
+    ZaloMapping m = mappingRepository.findByEmployeeId(targetEmployeeId).orElseGet(() -> {
+      ZaloMapping nm = new ZaloMapping();
+      nm.setEmployee(emp);
+      return nm;
+    });
+
+    m.setZaloUserId(finalZaloUserId);
+    m.setStatus(ZaloMapping.Status.CONNECTED);
+    m.setReceiveNotifications(true);
+    m.setConnectedAt(Instant.now());
+    mappingRepository.save(m);
+
+    return new ZaloStatusResponse(true, mask(finalZaloUserId), m.getConnectedAt(), true, targetEmployeeId);
   }
 
   @Transactional

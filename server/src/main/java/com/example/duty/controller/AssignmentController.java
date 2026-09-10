@@ -19,14 +19,14 @@ public class AssignmentController {
   private final AssignmentService service;
 
   @PostMapping("/api/duty-schedules/{scheduleId}/assignments")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<DutyDtos.ScheduleResponse> add(@PathVariable Long scheduleId,
                                                     @Valid @RequestBody DutyDtos.AssignEmployeeRequest req) {
     return ApiResponse.ok("Đã thêm nhân viên — đang gửi thông báo Zalo.", service.add(scheduleId, req.employeeId()));
   }
 
   @PutMapping("/api/duty-schedules/{scheduleId}/assignments/{assignmentId}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<DutyDtos.ScheduleResponse> replace(@PathVariable Long scheduleId,
                                                         @PathVariable Long assignmentId,
                                                         @Valid @RequestBody DutyDtos.AssignEmployeeRequest req) {
@@ -34,7 +34,7 @@ public class AssignmentController {
   }
 
   @DeleteMapping("/api/duty-schedules/{scheduleId}/assignments/{assignmentId}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<DutyDtos.ScheduleResponse> remove(@PathVariable Long scheduleId,
                                                        @PathVariable Long assignmentId) {
     return ApiResponse.ok("Đã gỡ nhân viên.", service.remove(scheduleId, assignmentId));

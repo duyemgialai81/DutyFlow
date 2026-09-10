@@ -95,11 +95,10 @@ public class AssignmentService {
   }
 
   @Transactional(readOnly = true)
-  public List<DutyDtos.MyDutyItem> myCalendar(LocalDate from, LocalDate to) {
-    Long me = SecurityUsers.currentEmployeeId();
-    if (me == null) return List.of();
+  public List<DutyDtos.MyDutyItem> myDutyItems(LocalDate from, LocalDate to, Long employeeId) {
+    if (employeeId == null) return List.of();
     return assignmentRepository
-        .findAllByEmployeeIdAndStatusIn(me, List.of(DutyAssignment.Status.ASSIGNED, DutyAssignment.Status.CONFIRMED))
+        .findAllByEmployeeIdAndStatusIn(employeeId, List.of(DutyAssignment.Status.ASSIGNED, DutyAssignment.Status.CONFIRMED))
         .stream()
         .map(a -> a.getSchedule())
         .filter(s -> s.getStatus() != DutySchedule.Status.CANCELLED)
@@ -108,11 +107,16 @@ public class AssignmentService {
         .sorted(java.util.Comparator.comparing(DutySchedule::getDate))
         .map(s -> {
           DutyAssignment mine = assignmentRepository.findAllByScheduleId(s.getId()).stream()
-              .filter(a -> a.getEmployee().getId().equals(me) && a.getStatus().active())
+              .filter(a -> a.getEmployee().getId().equals(employeeId) && a.getStatus().active())
               .findFirst().orElseThrow();
           return new DutyDtos.MyDutyItem(mine.getId(), mine.getStatus(), scheduleService.toResponse(s));
         })
         .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<DutyDtos.MyDutyItem> myCalendar(LocalDate from, LocalDate to) {
+    return myDutyItems(from, to, SecurityUsers.currentEmployeeId());
   }
 
   /* ---------- validation ---------- */

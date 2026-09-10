@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
-/** Danh mục: phòng ban, ca trực, nhân viên (cho filter + select của frontend). */
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -43,12 +43,15 @@ public class OrgController {
   @GetMapping("/employees")
   @PreAuthorize("isAuthenticated()")
   public ApiResponse<List<EmployeeResponse>> employees() {
-    String month = YearMonth.now().toString();
-    return ApiResponse.ok(employeeRepository.findAll().stream().map(e -> new EmployeeResponse(
+    YearMonth currentMonth = YearMonth.now();
+    LocalDate fromDate = currentMonth.atDay(1);
+    LocalDate toDate = currentMonth.plusMonths(1).atDay(1);
+    return ApiResponse.ok(employeeRepository.findAllWithDepartmentAndRole().stream().map(e -> new EmployeeResponse(
         e.getId(), e.getEmployeeCode(), e.getFullName(), e.getEmail(), e.getPhone(),
         e.getDepartment() != null ? e.getDepartment().getId() : null,
         e.getDepartment() != null ? e.getDepartment().getName() : null,
-        assignmentRepository.countByEmployeeAndMonth(e.getId(), month),
+        e.getStatus(),
+        assignmentRepository.countByEmployeeAndDateRange(e.getId(), fromDate, toDate),
         zaloMappingRepository.findByEmployeeId(e.getId())
             .map(m -> m.getStatus() == com.example.duty.entity.ZaloMapping.Status.CONNECTED)
             .orElse(false)

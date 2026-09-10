@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/duty;MODE=MySQL;DATABASE_TO_UPPER=false;DB_CLOSE_DELAY=-1}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+  flyway:
+    enabled: ${FLYWAY_ENABLED:false}
+  cache:
+    type: ${CACHE_TYPE:simple}
+  data:
+    elasticsearch:
+      repositories:
+        enabled: ${ELASTICSEARCH_REPOSITORIES_ENABLED:false}
+
+server:
+  port: ${PORT:7860}

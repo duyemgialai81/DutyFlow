@@ -19,7 +19,7 @@ public class DutyScheduleController {
   /* ---------- Schedule CRUD + transitions ---------- */
 
   @PostMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<DutyDtos.ScheduleResponse> create(@Valid @RequestBody DutyDtos.CreateScheduleRequest req) {
     return ApiResponse.ok("Đã tạo ca trực.", service.create(req));
   }
@@ -41,33 +41,33 @@ public class DutyScheduleController {
   }
 
   @PutMapping("/{id}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<DutyDtos.ScheduleResponse> update(@PathVariable Long id,
                                                        @Valid @RequestBody DutyDtos.UpdateScheduleRequest req) {
     return ApiResponse.ok("Đã cập nhật ca trực.", service.update(id, req));
   }
 
   @DeleteMapping("/{id}")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<Void> delete(@PathVariable Long id) {
     service.delete(id);
     return ApiResponse.ok("Đã xóa ca trực nháp.", null);
   }
 
   @PostMapping("/{id}/confirm")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<DutyDtos.ScheduleResponse> confirm(@PathVariable Long id) {
     return ApiResponse.ok("Đã xác nhận ca trực.", service.confirm(id));
   }
 
   @PostMapping("/{id}/lock")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<DutyDtos.ScheduleResponse> lock(@PathVariable Long id) {
     return ApiResponse.ok("Đã khóa ca trực.", service.lock(id));
   }
 
   @PostMapping("/{id}/cancel")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<DutyDtos.ScheduleResponse> cancel(@PathVariable Long id) {
     return ApiResponse.ok("Đã hủy ca trực.", service.cancel(id));
   }
@@ -75,13 +75,13 @@ public class DutyScheduleController {
   /* ---------- Auto assignment ---------- */
 
   @PostMapping("/auto-assign/preview")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<AutoAssignPreviewResponse> preview(@Valid @RequestBody AutoAssignRequest req) {
     return ApiResponse.ok(service.preview(req));
   }
 
   @PostMapping("/auto-assign/confirm")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAnyRole('ADMIN','LEADER')")
   public ApiResponse<AutoAssignConfirmResponse> confirmAutoAssign(@Valid @RequestBody AutoAssignRequest req) {
     return ApiResponse.ok("Đã lưu phân ca tự động.", service.confirmAutoAssign(req));
   }

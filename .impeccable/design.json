@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-09T09:00:00Z",
+  "title": "Design System: DutyFlow",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Cool Canvas",
+        "canonical": "oklch(98% 0.003 240)",
+        "tonalRamp": ["#1e232a", "#343a46", "#505868", "#788193", "#a7aebc", "#d0d4dd", "#ebedf1", "#f7f8fa"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Clean Surface",
+        "canonical": "oklch(100% 0 0)",
+        "tonalRamp": ["#111827", "#1f2937", "#374151", "#4b5563", "#9ca3af", "#d1d5db", "#f3f4f6", "#ffffff"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Deep Ink",
+        "canonical": "oklch(21% 0.02 260)",
+        "tonalRamp": ["#030712", "#111827", "#1f2937", "#374151", "#6b7280", "#9ca3af", "#e5e7eb", "#f9fafb"]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Cobalt Precision",
+        "canonical": "oklch(53% 0.22 258)",
+        "tonalRamp": ["#172554", "#1e40af", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#bfdbfe", "#eff6ff"]
+      },
+      "shift-morning": {
+        "role": "accent",
+        "displayName": "Amber Sun",
+        "canonical": "oklch(75% 0.17 75)",
+        "tonalRamp": ["#451a03", "#78350f", "#b45309", "#d97706", "#f59e0b", "#fbbf24", "#fde68a", "#fffbeb"]
+      },
+      "shift-afternoon": {
+        "role": "accent",
+        "displayName": "Sky Meridian",
+        "canonical": "oklch(53% 0.22 258)",
+        "tonalRamp": ["#172554", "#1e40af", "#1d4ed8", "#2563eb", "#3b82f6", "#93c5fd", "#dbeafe", "#eff6ff"]
+      },
+      "shift-night": {
+        "role": "accent",
+        "displayName": "Slate Twilight",
+        "canonical": "oklch(55% 0.03 250)",
+        "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"]
+      },
+      "status-success": {
+        "role": "semantic",
+        "displayName": "Emerald Vigilance",
+        "canonical": "oklch(62% 0.19 145)",
+        "tonalRamp": ["#052e16", "#14532d", "#166534", "#15803d", "#16a34a", "#22c55e", "#86efac", "#f0fdf4"]
+      },
+      "status-danger": {
+        "role": "semantic",
+        "displayName": "Alert Crimson",
+        "canonical": "oklch(59% 0.22 25)",
+        "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#ef4444", "#fca5a5", "#fef2f2"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page titles and major view headings (24px bold)" },
+      "headline": { "displayName": "Headline", "purpose": "Section headings and chart titles (18px bold)" },
+      "title": { "displayName": "Title", "purpose": "Modal, drawer, and card group titles (15px semibold)" },
+      "body": { "displayName": "Body", "purpose": "Standard content, table text, form inputs (13.5px)" },
+      "label": { "displayName": "Label", "purpose": "Badges, status indicators, and column labels (11.5px semibold)" }
+    },
+    "shadows": [
+      { "name": "shadow-card", "value": "0 1px 2px rgb(17 24 39 / 0.04)", "purpose": "Resting container, card surface, and table outline" },
+      { "name": "shadow-lift", "value": "0 1px 2px rgb(17 24 39 / 0.05), 0 4px 12px -2px rgb(17 24 39 / 0.08)", "purpose": "Hover elevation for stat cards and draggable shift blocks" },
+      { "name": "shadow-pop", "value": "0 12px 40px -8px rgb(17 24 39 / 0.18), 0 4px 12px rgb(17 24 39 / 0.06)", "purpose": "Active modals, slide-in drawers, and command palette" }
+    ],
+    "motion": [
+      { "name": "ease-rise", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Gentle upward entry animation (0.32s)" },
+      { "name": "ease-pop", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Modal bounce and card scale up (0.18s)" },
+      { "name": "ease-drawer", "value": "cubic-bezier(0.32, 0.72, 0.28, 1)", "purpose": "Slide drawer from right side (0.26s)" }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Nút hành động chính có phản hồi xúc giác nhẹ",
+      "html": "<button class=\"ds-btn-primary\">Lưu ca trực</button>",
+      "css": ".ds-btn-primary { background: #2563eb; color: #ffffff; height: 40px; padding: 0 16px; border-radius: 10px; font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 1px 2px rgba(37, 99, 235, 0.35); transition: background-color 0.15s, transform 0.1s; } .ds-btn-primary:hover { background: #1d4ed8; } .ds-btn-primary:active { background: #1e40af; transform: scale(0.985); } .ds-btn-primary:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Nút hành động phụ, viền mảnh với nền trắng",
+      "html": "<button class=\"ds-btn-secondary\">Hủy bỏ</button>",
+      "css": ".ds-btn-secondary { background: #ffffff; color: #374151; height: 40px; padding: 0 16px; border-radius: 10px; font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; border: 1px solid #e5e7eb; cursor: pointer; box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04); transition: background-color 0.15s, border-color 0.15s; } .ds-btn-secondary:hover { background: #f9fafb; border-color: #d1d5db; } .ds-btn-secondary:active { transform: scale(0.985); } .ds-btn-secondary:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }"
+    },
+    {
+      "name": "Shift Tag Morning",
+      "kind": "chip",
+      "refersTo": "shift-morning",
+      "description": "Thẻ nhận diện Ca sáng có chấm màu hổ phách và khung giờ",
+      "html": "<span class=\"ds-shift-morning\"><span class=\"ds-dot-morning\"></span>Ca sáng <span class=\"ds-tnum\">07:00-11:00</span></span>",
+      "css": ".ds-shift-morning { display: inline-flex; align-items: center; gap: 6px; background: rgba(254, 243, 199, 0.7); color: #374151; padding: 3px 8px; border-radius: 6px; font-family: Inter, sans-serif; font-size: 11.5px; font-weight: 600; } .ds-dot-morning { width: 6px; height: 6px; border-radius: 9999px; background: #f59e0b; } .ds-tnum { font-variant-numeric: tabular-nums; font-family: monospace; font-size: 11px; color: #6b7280; margin-left: 2px; }"
+    },
+    {
+      "name": "Shift Tag Afternoon",
+      "kind": "chip",
+      "refersTo": "shift-afternoon",
+      "description": "Thẻ nhận diện Ca chiều có chấm màu xanh Cobalt",
+      "html": "<span class=\"ds-shift-afternoon\"><span class=\"ds-dot-afternoon\"></span>Ca chiều <span class=\"ds-tnum\">13:00-17:00</span></span>",
+      "css": ".ds-shift-afternoon { display: inline-flex; align-items: center; gap: 6px; background: rgba(219, 234, 254, 0.7); color: #374151; padding: 3px 8px; border-radius: 6px; font-family: Inter, sans-serif; font-size: 11.5px; font-weight: 600; } .ds-dot-afternoon { width: 6px; height: 6px; border-radius: 9999px; background: #2563eb; } .ds-tnum { font-variant-numeric: tabular-nums; font-family: monospace; font-size: 11px; color: #6b7280; margin-left: 2px; }"
+    },
+    {
+      "name": "Status Badge Confirmed",
+      "kind": "chip",
+      "refersTo": "status-success",
+      "description": "Huy hiệu xác nhận ca trực màu xanh lá cây",
+      "html": "<span class=\"ds-badge-confirmed\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\"><polyline points=\"20 6 9 17 4 12\"></polyline></svg>Đã xác nhận</span>",
+      "css": ".ds-badge-confirmed { display: inline-flex; align-items: center; gap: 4px; background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; padding: 2px 8px; border-radius: 6px; font-family: Inter, sans-serif; font-size: 11.5px; font-weight: 600; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Trường nhập dữ liệu tiêu chuẩn cao 40px với viền nét mỏng",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Nhập tên ca trực hoặc nhân sự...\" />",
+      "css": ".ds-input { height: 40px; width: 100%; box-sizing: border-box; background: #ffffff; color: #111827; border: 1px solid #e5e7eb; border-radius: 10px; padding: 0 12px; font-family: Inter, sans-serif; font-size: 13.5px; outline: none; transition: border-color 0.15s, box-shadow 0.15s; } .ds-input:hover { border-color: #d1d5db; } .ds-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25); } .ds-input::placeholder { color: #9ca3af; }"
+    },
+    {
+      "name": "Stat Card",
+      "kind": "card",
+      "refersTo": "card-container",
+      "description": "Thẻ hiển thị chỉ số đo lường nâng cao khi hover",
+      "html": "<div class=\"ds-stat-card\"><div class=\"ds-stat-label\">Tổng số ca trong tháng</div><div class=\"ds-stat-val\">128</div><div class=\"ds-stat-sub\">Đạt 94% định mức phủ lịch</div></div>",
+      "css": ".ds-stat-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 20px; box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04); transition: transform 0.2s, box-shadow 0.2s; font-family: Inter, sans-serif; } .ds-stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px -2px rgba(17, 24, 39, 0.08); } .ds-stat-label { font-size: 13px; font-weight: 500; color: #6b7280; margin-bottom: 8px; } .ds-stat-val { font-size: 28px; font-weight: 700; color: #111827; line-height: 1; font-variant-numeric: tabular-nums; } .ds-stat-sub { font-size: 12px; color: #9ca3af; margin-top: 8px; }"
+    },
+    {
+      "name": "Zalo Sync Badge",
+      "kind": "chip",
+      "refersTo": "zalo-badge",
+      "description": "Huy hiệu kết nối tài khoản Zalo cá nhân của nhân sự",
+      "html": "<span class=\"ds-zalo-badge\"><span class=\"ds-zalo-dot\"></span>Zalo</span>",
+      "css": ".ds-zalo-badge { display: inline-flex; align-items: center; gap: 4px; background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; padding: 2px 8px; border-radius: 6px; font-family: Inter, sans-serif; font-size: 11.5px; font-weight: 600; } .ds-zalo-dot { width: 6px; height: 6px; border-radius: 9999px; background: #3b82f6; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Precision Clockwork",
+    "overview": "DutyFlow được xây dựng như một cỗ máy điều hòa ca trực chuẩn xác, tinh tế và đáng tin cậy. Trong môi trường vận hành trực xoay vòng 24/7 (bệnh viện, nhà máy, trung tâm chỉ huy viễn thông, bảo vệ), mọi quyết định điều phối đều đòi hỏi tính chuẩn mực, trật tự, công bằng và khả năng nhận biết tức thì. Giao diện từ chối sự màu mè, rối mắt; từng đường kẻ, sắc độ màu và khoảng cách đều phục vụ mục tiêu duy nhất: người quản lý nắm bắt toàn cảnh tình trạng ca trực trong 3 giây và nhân viên tra cứu ca trực của mình chỉ bằng một thao tác lướt mắt.\n\nHệ thống hoạt động ở chế độ Operate Mode (vận hành tác chiến). Cấu trúc thị giác mang tính phân tầng rõ rệt: nền canvas xám lạnh thanh thoát (#f7f8fa) nâng đỡ các bề mặt thao tác màu trắng tinh khiết (#ffffff), được viền bằng nét phân định vi mô (#e5e7eb). Không gian làm việc kết hợp giữa sự nghiêm cẩn về mặt dữ liệu (sử dụng font số cố định độ rộng tabular-nums) với phản hồi xúc giác dứt khoát (Tactile transitions) trên mỗi nút bấm, thanh kéo thẻ và popup chi tiết.",
+    "keyCharacteristics": [
+      "Nhận diện trạng thái tức thời: Hệ thống phân định màu sắc trực quan (Sáng - Hổ phách, Chiều - Xanh lam, Tối - Xám phiến đá, Đủ người - Xanh lá, Thiếu người - Đỏ).",
+      "Trật tự & Cân bằng (Clockwork Rhythm): Lưới phân chia ngày và nhân sự đều tăm tắp, độ dày viền 1px nhất quán, loại bỏ hoàn toàn các yếu tố trang trí dư thừa.",
+      "Tương tác chắc tay (Tactile Controls): Mọi nút bấm và tương tác chuyển trạng thái đều có bước hạ thấp scale active:scale-[0.985], mang lại cảm giác công cụ vật lý chân thực.",
+      "Thích ứng nhạy bén (Responsive Precision): Hiển thị dạng ma trận đa chiều (Resource Calendar) trên màn hình máy tính và chuyển dịch mượt mà sang dạng thẻ cuộn tuyến tính trên thiết bị di động."
+    ],
+    "rules": [
+      {
+        "name": "The 3-Second State Rule",
+        "body": "Mọi ô lịch hoặc thẻ ca trực đều phải truyền tải được 3 thông số: Khung giờ ca (màu chấm), Tình trạng nhân sự (màu viền/badge), và Trạng thái xác nhận trong vòng 3 giây quan sát đầu tiên.",
+        "section": "colors"
+      },
+      {
+        "name": "The Scarcity of Red Rule",
+        "body": "Sắc đỏ cảnh báo (#ef4444) chỉ được xuất hiện khi có sự cố nghiêm trọng: ca trực thiếu người bắt buộc hoặc thao tác hủy không thể phục hồi. Không dùng màu đỏ cho các cảnh báo thông tin thông thường.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Precision Rule",
+        "body": "Bất kỳ giá trị nào liên quan đến giờ giấc (VD: 07:00 - 11:00), số ca trực (8/10 ca), ngày tháng hoặc phần trăm tải việc bắt buộc phải áp dụng class .tnum (font-variant-numeric: tabular-nums) để triệt tiêu hiện tượng rung giật giao diện khi cập nhật số liệu thời gian thực.",
+        "section": "typography"
+      },
+      {
+        "name": "The Active Elevation Rule",
+        "body": "Khi người dùng bắt đầu kéo thả một phân công ca trực (dragging), thẻ phân công phải tăng tức thì độ cao đổ bóng lên --shadow-pop và xoay nhẹ rotate-1 để biểu thị trạng thái đang nhấc khỏi mặt bàn làm việc.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do luôn bọc toàn bộ giờ giấc, số ca trực và ngày tháng trong class .tnum (tabular-nums) để bảng không bị xô lệch vị trí.",
+      "Do sử dụng Modal cho các thao tác xác nhận ngắn gọn và dùng Drawer trượt từ cạnh phải cho các biểu mẫu tạo ca hoặc chỉnh sửa chi tiết phức tạp.",
+      "Do đảm bảo mọi nút bấm đều có hiệu ứng focus-visible với viền xanh 2px và khoảng cách đệm 2px cho người dùng thao tác phím.",
+      "Do thể hiện đầy đủ trạng thái Loading (Skeleton shimmer hoặc vòng xoay Loader2) thay vì để màn hình trắng khi tải dữ liệu từ máy chủ."
+    ],
+    "donts": [
+      "Don't tự ý thêm các màu sắc trang trí nằm ngoài bảng màu quy chuẩn (không dùng tím, hồng neon, xanh nõn chuối cho các trạng thái ca trực).",
+      "Don't sử dụng cỡ chữ dưới 11px cho bất kỳ nhãn nào, đảm bảo nhân viên xem ca trên điện thoại không phải phóng to màn hình.",
+      "Don't ẩn đi thông tin số ca trực tối đa của nhân viên (quy tắc 10 ca/tháng) trong lúc phân ca thủ công hoặc tự động.",
+      "Don't sử dụng hiệu ứng bóng đổ nặng nề (heavy black shadows) trên nền canvas; chỉ sử dụng hệ bóng đổ đã được tính toán trong CSS variables."
+    ]
+  }
+}

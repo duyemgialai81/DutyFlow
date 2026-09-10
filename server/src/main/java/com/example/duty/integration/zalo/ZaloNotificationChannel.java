@@ -22,7 +22,7 @@ public class ZaloNotificationChannel implements NotificationChannel {
   private final ZaloProperties props;
   private final TokenCipher cipher;
   private final ZaloMappingRepository mappingRepository;
-  private final ObjectProvider<com.example.duty.repository.AppNotificationRepository> ignored; // giữ DI rõ ràng
+  private final ZaloIntegrationService integrationService;
 
   @Override
   public String channelName() {
@@ -33,6 +33,9 @@ public class ZaloNotificationChannel implements NotificationChannel {
   public DeliveryResult send(String recipientZaloUserId, String title, String content)
       throws NotificationDeliveryException {
     try {
+      if (integrationService != null && integrationService.isDevFailureEnabled()) {
+        throw new NotificationDeliveryException("Mô phỏng lỗi Zalo API (Cấu hình thử nghiệm Dev Failure đang bật)");
+      }
       ZaloMapping mapping = mappingRepository.findByZaloUserId(recipientZaloUserId)
           .orElseThrow(() -> new NotificationDeliveryException("Không tìm thấy Zalo mapping"));
 
@@ -54,6 +57,8 @@ public class ZaloNotificationChannel implements NotificationChannel {
     // Fallback: token tĩnh từ env (kịch bản OA token)
     String envToken = props.accessToken();
     if (envToken != null && !envToken.isBlank()) return envToken;
-    throw new ZaloClient.ZaloApiException("Không có access_token Zalo (mapping trống, env ZALO_ACCESS_TOKEN chưa cấu hình)");
+    
+    // Nếu chưa cấu hình OA Token trong môi trường dev/local:
+    return "simulated_token";
   }
 }

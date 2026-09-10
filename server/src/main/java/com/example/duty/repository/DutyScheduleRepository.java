@@ -9,9 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DutyScheduleRepository
-    extends JpaRepository<DutySchedule, Long>, JpaSpecificationExecutor<DutySchedule> {
-
+  extends JpaRepository<DutySchedule, Long>, JpaSpecificationExecutor<DutySchedule> {
   Optional<DutySchedule> findByDateAndShiftIdAndStatusNot(LocalDate date, Long shiftId, DutySchedule.Status status);
-
   List<DutySchedule> findAllByDateBetween(LocalDate from, LocalDate to);
 }

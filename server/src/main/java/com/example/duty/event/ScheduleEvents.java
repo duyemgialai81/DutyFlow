@@ -12,14 +12,9 @@ import java.util.List;
 public final class ScheduleEvents {
 
   private ScheduleEvents() {}
-
   public record ScheduleCreatedEvent(DutySchedule schedule, String actor) {}
-
   public record ScheduleUpdatedEvent(DutySchedule schedule, String changedFields, String actor) {}
-
   public record ScheduleAssignedEvent(DutySchedule schedule, List<Long> employeeIds, String actor) {}
-
   public record ScheduleConfirmedEvent(DutySchedule schedule, String actor) {}
-
   public record ScheduleCancelledEvent(DutySchedule schedule, List<Long> employeeIds, String actor) {}
 }

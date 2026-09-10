@@ -36,9 +36,16 @@ public class Employee {
   @JoinColumn(name = "department_id")
   private Department department;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "role_id")
+  private Role role;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 16)
   private Status status = Status.ACTIVE;
+
+  @Column(length = 255)
+  private String password;
 
   @CreationTimestamp
   @Column(name = "created_at", updatable = false)

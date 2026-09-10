@@ -2,6 +2,7 @@ package com.example.duty.dto;
 
 import com.example.duty.entity.AppNotification;
 import com.example.duty.entity.DayOff;
+import com.example.duty.entity.Employee;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -65,6 +66,7 @@ public final class MiscDtos {
 
   public record EmployeeResponse(
       Long id, String employeeCode, String fullName, String email, String phone,
-      Long departmentId, String departmentName, long shiftCountMonth, boolean zaloConnected
+      Long departmentId, String departmentName, Employee.Status status,
+      long shiftCountMonth, boolean zaloConnected
   ) {}
 }

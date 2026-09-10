@@ -13,7 +13,7 @@ import java.time.Instant;
 @Getter @Setter @NoArgsConstructor
 public class AppNotification {
 
-  public enum Type { SCHEDULE_ASSIGNED, SCHEDULE_UPDATED, SCHEDULE_CANCELLED, SCHEDULE_CONFIRMED }
+  public enum Type { SCHEDULE_ASSIGNED, SCHEDULE_UPDATED, SCHEDULE_CANCELLED, SCHEDULE_CONFIRMED, DUTY_REMINDER }
 
   public enum Channel { ZALO, IN_APP }
 

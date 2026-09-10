@@ -25,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Pipeline thông báo: idempotency → PENDING (commit) → PROCESSING → kênh gửi →
@@ -96,7 +97,7 @@ public class NotificationService {
   }
 
   /** Vòng gửi + retry. Chạy async, tách khỏi transaction nghiệp vụ. */
-  void deliver(Long notificationId) {
+  public void deliver(Long notificationId) {
     AppNotification n = repository.findById(notificationId).orElse(null);
     if (n == null || n.getStatus() == Status.SENT) return;
 
@@ -145,7 +146,7 @@ public class NotificationService {
   }
 
   private void scheduleRetry(Long id, long delayMs) {
-    Thread.startVirtualThread(() -> {
+    CompletableFuture.runAsync(() -> {
       try {
         Thread.sleep(delayMs);
       } catch (InterruptedException ie) {
@@ -162,7 +163,7 @@ public class NotificationService {
     String d = date.format(DD_MM_YYYY);
     String hh = DateTimeFormatter.ofPattern("HH:mm").format(start) + " - " + DateTimeFormatter.ofPattern("HH:mm").format(end);
     return switch (type) {
-      case SCHEDULE_ASSIGNED -> new MessageContent("\uD83D\uDCC5 LỊCH TRỰC MỚI",
+      case SCHEDULE_ASSIGNED -> new MessageContent("📅 LỊCH TRỰC MỚI",
           "Ngày: " + d + "\nCa: " + hh + "\nĐịa điểm: " + location
               + "\nBạn được phân công ca trực này.\nVui lòng kiểm tra và xác nhận.");
       case SCHEDULE_UPDATED -> new MessageContent("⚠️ LỊCH TRỰC ĐÃ THAY ĐỔI",
@@ -171,6 +172,12 @@ public class NotificationService {
           "Ca trực ngày " + d + " đã được hủy.");
       case SCHEDULE_CONFIRMED -> new MessageContent("✅ LỊCH TRỰC ĐÃ XÁC NHẬN",
           "Ca trực ngày " + d + " (" + hh + ") đã được xác nhận.");
+      case DUTY_REMINDER -> new MessageContent("⏰ NHẮC LỊCH TRỰC HÔM NAY",
+          "📋 Nhắc nhở: Hôm nay bạn có ca trực!"
+              + "\n🗓 Ngày: " + d
+              + "\n🕐 Giờ: " + hh
+              + "\n📍 Địa điểm: " + location
+              + "\nChúc bạn làm việc hiệu quả! 🏥");
     };
   }
 
@@ -183,7 +190,7 @@ public class NotificationService {
   @Transactional(readOnly = true)
   public List<NotificationResponse> list(boolean all) {
     Long me = SecurityUsers.currentEmployeeId();
-    List<AppNotification> list = (all && SecurityUsers.isAdmin())
+    List<AppNotification> list = (all && SecurityUsers.isAdminOrLeader())
         ? repository.findAllByOrderByIdDesc()
         : me != null ? repository.findAllByEmployeeIdOrderByIdDesc(me) : List.of();
     return list.stream().map(mapper::toNotification).toList();
@@ -199,7 +206,7 @@ public class NotificationService {
   public void markRead(Long id) {
     repository.findById(id).ifPresent(n -> {
       Long me = SecurityUsers.currentEmployeeId();
-      if (SecurityUsers.isAdmin() || (me != null && me.equals(n.getEmployee().getId()))) {
+      if (SecurityUsers.isAdminOrLeader() || (me != null && me.equals(n.getEmployee().getId()))) {
         n.setRead(true);
         repository.save(n);
       } else {
@@ -211,7 +218,7 @@ public class NotificationService {
   @Transactional
   public void markAllRead() {
     Long me = SecurityUsers.currentEmployeeId();
-    List<AppNotification> list = SecurityUsers.isAdmin()
+    List<AppNotification> list = SecurityUsers.isAdminOrLeader()
         ? repository.findAll()
         : me != null ? repository.findAllByEmployeeIdOrderByIdDesc(me) : List.of();
     list.forEach(n -> n.setRead(true));
